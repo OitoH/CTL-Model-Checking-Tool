@@ -6,7 +6,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 class State {
-    private int name;
+    public final int name;
     private List<State> nextStateList;
     private List<String> propertyList;
     private List<Integer> labelList;
@@ -218,50 +218,55 @@ class StateMachine {
         return true;
     }
 
-    public static void testAppMain(String[] args) {
+    public List<State> getStatesWithLabel(int label) {
+        List<State> states = new ArrayList<State>();
+        for(int i = 0; i < stateList.size(); i++) {
+            if(stateList.get(i).verifyLabel(label))
+                states.add(stateList.get(i));
+        }
+        return states;
+    }
+
+    public static StateMachine buildKISSFormat(BufferedReader bufferedReader) throws IOException {
+        int totLinhas = Integer.parseInt(bufferedReader.readLine());
+        int idLinha;
+        StateMachine stateMachine = new StateMachine(totLinhas);
+
+        for (idLinha = 1; idLinha <= totLinhas; idLinha++) {
+            //tratamento das linhas de cada estado
+            String linha;
+            linha = bufferedReader.readLine();
+            String[] words = linha.split(" ");
+            int vectorPointer;
+            //words: vetor de palavras de uma linha
+            //vectorPointer: ponteiro do vetor words
+
+            int propVectorPointer = Integer.parseInt(words[1]) + 2;
+            int maxVectorPointer = Integer.parseInt(words[propVectorPointer]) + propVectorPointer + 1;
+            for (vectorPointer = 2; vectorPointer < propVectorPointer; vectorPointer++) {
+                //adiciona propriedades ao estado idLinha
+                stateMachine.addProperty(idLinha, words[vectorPointer]);
+            }
+            for (vectorPointer = propVectorPointer + 1; vectorPointer < maxVectorPointer; vectorPointer++) {
+                //adiciona proximos estados ao estado idLinha
+                stateMachine.addNextState(idLinha, Integer.parseInt(words[vectorPointer]));
+            }
+        }
+
+        return stateMachine;
+    }
+
+    public static void testAppMain(String[] args) throws IOException {
         StateMachine stateMachine;
         String fileName;
         BufferedReader bufferedReader;
+
         System.out.println("Digite o arquivo da maquina de estado");
         Scanner sc = new Scanner(System.in);
         fileName = sc.nextLine();
         sc.close();
-        try {
-            FileReader fileReader = new FileReader(fileName);
-            bufferedReader = new BufferedReader(fileReader);
 
-
-            //Parser da entrada (máquina de estado)
-
-            int totLinhas = Integer.parseInt(bufferedReader.readLine());
-            int idLinha;
-            stateMachine = new StateMachine(totLinhas);
-            for (idLinha = 1; idLinha <= totLinhas; idLinha++) {
-
-                //tratamento das linhas de cada estado
-                String linha;
-                linha = bufferedReader.readLine();
-                String[] words = linha.split(" ");
-                int vectorPointer;
-                //words: vetor de palavras de uma linha
-                //vectorPointer: ponteiro do vetor words
-
-                int propVectorPointer = Integer.parseInt(words[1]) + 2;
-                int maxVectorPointer = Integer.parseInt(words[propVectorPointer]) + propVectorPointer + 1;
-                for (vectorPointer = 2; vectorPointer < propVectorPointer; vectorPointer++) {
-                    //adiciona propriedades ao estado idLinha
-                    stateMachine.addProperty(idLinha, words[vectorPointer]);
-                }
-                for (vectorPointer = propVectorPointer + 1; vectorPointer < maxVectorPointer; vectorPointer++) {
-                    //adiciona proximos estados ao estado idLinha
-                    stateMachine.addNextState(idLinha, Integer.parseInt(words[vectorPointer]));
-                }
-
-            }
-        } catch (NumberFormatException ex) {
-            System.out.println(ex);
-        } catch (IOException ex) {
-            System.out.println(ex);
-        }
+        bufferedReader = new BufferedReader(new FileReader(fileName));
+        stateMachine = buildKISSFormat(bufferedReader);
     }
 }

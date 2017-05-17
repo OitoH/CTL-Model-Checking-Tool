@@ -3,7 +3,6 @@ package br.usp.sistemasreativos;
 import br.usp.sistemasreativos.grammar.CTLBaseListener;
 import br.usp.sistemasreativos.grammar.CTLLexer;
 import br.usp.sistemasreativos.grammar.CTLParser;
-import com.sun.corba.se.impl.orb.ParserTable;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -11,13 +10,19 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
 public class EvaluatorEmitter extends CTLBaseListener {
-    ParseTreeProperty<Integer> label = new ParseTreeProperty<Integer>();
-    int nextLabel = 1;
+    private ParseTreeProperty<Integer> label;
+    private int nextLabel;
+    StateMachine stateMachine;
+
+    public EvaluatorEmitter(StateMachine m) {
+        this.nextLabel = 1;
+        this.label = new ParseTreeProperty<>();
+        this.stateMachine = m;
+    }
 
     Integer getLabel(ParseTree ctx) {
         return label.get(ctx);
@@ -38,10 +43,11 @@ public class EvaluatorEmitter extends CTLBaseListener {
 
     @Override
     public void exitProperty(CTLParser.PropertyContext ctx) {
-        if(ctx.getText().contains("true"))
+        if(ctx.getText().compareTo("true") == 0)
             setTrueLabel(ctx);
         else
             setLabel(ctx);
+        stateMachine.propertyLabel(getLabel(ctx), ctx.getText());
     }
 
     @Override
@@ -60,15 +66,14 @@ public class EvaluatorEmitter extends CTLBaseListener {
         Integer leftLabel = getLabel(ctx.expr(0));
         Integer rightLabel = getLabel(ctx.expr(1));
 
-        // TODO: Call machine or function
+        stateMachine.or(getLabel(ctx), leftLabel, rightLabel);
     }
 
     @Override
     public void exitNot(CTLParser.NotContext ctx) {
         setLabel(ctx);
         Integer childLabel = getLabel(ctx.expr());
-
-        // TODO: Call machine not function
+        stateMachine.not(getLabel(ctx), childLabel);
     }
 
     @Override
@@ -78,28 +83,26 @@ public class EvaluatorEmitter extends CTLBaseListener {
 
     @Override
     public void exitUnaryCTL(CTLParser.UnaryCTLContext ctx) {
-        /* Implementation note: Since the evaluator emitter
-        is meant to work upon normalized CTL, this should be either EX or AF */
-        Integer childLabel = getLabel(ctx.parenExpr());
+        /* Nota de implementação : Como o evaluator atua sobre CTL no formato
+        de conjunto com menor número de operadores, será uma operação EX ou AF */
         setLabel(ctx);
+        Integer childLabel = getLabel(ctx.parenExpr());
 
-        if(ctx.CTLOpUnary().getText().charAt(0) == 'A') {
-            // TODO: Call AF machine function
-        }
-        else {
-            // TODO: Call EX machine function
-        }
+        if(ctx.CTLOpUnary().getText().charAt(0) == 'A')
+            stateMachine.af(getLabel(ctx), childLabel);
+        else
+            stateMachine.ex(getLabel(ctx), childLabel);
     }
 
     @Override
     public void exitBinaryCTL(CTLParser.BinaryCTLContext ctx) {
+        setLabel(ctx);
         Integer leftLabel = getLabel(ctx.expr(0));
         Integer rightLabel = getLabel(ctx.expr(1));
-        setLabel(ctx);
-
-        // TODO: Call EU machine function
+        stateMachine.eu(getLabel(ctx), leftLabel, rightLabel);
     }
 
+    /*
     public static void testAppMain(String[] args) throws IOException {
         String inputfile = null;
         if (args.length > 0) inputfile = args[0];
@@ -135,4 +138,5 @@ public class EvaluatorEmitter extends CTLBaseListener {
 
         System.out.println(labelTree.toStringTree());
     }
+    */
 }
