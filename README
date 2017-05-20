@@ -1,0 +1,8 @@
+# Instruções para compilação
+1. Instale o programa gradle (Ubuntu: sudo apt-get install gradle)
+2. Acesse o diretório contendo o arquivo build.gradle no terminal e execute:
+$ gradle classes
+
+# Instrução de execução
+Acesse o diretório contendo o arquivo build.gradle no terminal e execute:
+$ gradle run
