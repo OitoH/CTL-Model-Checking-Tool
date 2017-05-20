@@ -48,15 +48,15 @@ public class Main {
         walker.walk(evaluator, convertedTree);
 
         // Imprimir estados onde a expressão é válida
-        List<State> answer = stateMachine.getStatesWithLabel(evaluator.getLabel(convertedTree));
+        List<Integer> answer = stateMachine.getStatesWithLabel(evaluator.getLabel(convertedTree));
         if (answer.isEmpty()) {
             System.out.println("A expressão é falsa para todos os estados");
         }
         else {
             System.out.println("A expressão é válida nos seguintes estados:");
-            System.out.print(answer.get(0).name);
-            for (State state : answer)
-                System.out.print(" " + state.name);
+            System.out.print(answer.get(0));
+            for (Integer state : answer)
+                System.out.print(" " + state.toString());
         }
     }
 }
