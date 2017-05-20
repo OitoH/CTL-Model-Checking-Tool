@@ -15,10 +15,18 @@ import java.io.InputStream;
 
 public class NormalizedCTLEmitter extends CTLBaseListener {
     ParseTreeProperty<String> ctl = new ParseTreeProperty<String>();
-    String getCTL(ParseTree ctx) { return ctl.get(ctx); }
-    void setCTL(ParseTree ctx, String s) { ctl.put(ctx, s); }
 
-    private static String wrap(String str) { return "(" + str + ")"; }
+    String getCTL(ParseTree ctx) {
+        return ctl.get(ctx);
+    }
+
+    void setCTL(ParseTree ctx, String s) {
+        ctl.put(ctx, s);
+    }
+
+    private static String wrap(String str) {
+        return "(" + str + ")";
+    }
 
     @Override
     public void exitProperty(CTLParser.PropertyContext ctx) {
@@ -112,11 +120,13 @@ public class NormalizedCTLEmitter extends CTLBaseListener {
         String q = getCTL(ctx.expr(1));
 
         String op = ctx.CTLOpBinary().getText();
-        if(op.compareTo("AU") == 0) {
+        if (op.compareTo("AU") == 0) {
             q = wrap(q);
             String notq = '!' + q;
 
-            buf.append("!(EG("); buf.append(notq); buf.append(")|EU(");
+            buf.append("!(EG(");
+            buf.append(notq);
+            buf.append(")|EU(");
             buf.append(notq);
             buf.append(",");
             buf.append("!(");
@@ -126,8 +136,7 @@ public class NormalizedCTLEmitter extends CTLBaseListener {
             buf.append(")))");
 
             setCTL(ctx, buf.toString());
-        }
-        else {
+        } else {
             buf.append("EU(");
             buf.append(p);
             buf.append(",");
@@ -159,7 +168,7 @@ public class NormalizedCTLEmitter extends CTLBaseListener {
     }
 
     private void convertExistsUnaryCTLNode(CTLParser.UnaryCTLContext ctx, String op, String prop) {
-        switch(op.charAt(1)) {
+        switch (op.charAt(1)) {
             case 'X':
                 setCTL(ctx, "EX" + prop);
                 break;
@@ -193,7 +202,7 @@ public class NormalizedCTLEmitter extends CTLBaseListener {
     }
 
     private void convertAllUnaryCTLNode(CTLParser.UnaryCTLContext ctx, String op, String prop) {
-        switch(op.charAt(1)) {
+        switch (op.charAt(1)) {
             case 'X':
                 convertAX(ctx, prop);
                 break;
@@ -210,7 +219,7 @@ public class NormalizedCTLEmitter extends CTLBaseListener {
     public void exitUnaryCTL(CTLParser.UnaryCTLContext ctx) {
         String op = ctx.CTLOpUnary().getText();
         String prop = getCTL(ctx.parenExpr());
-        switch(op.charAt(0)) {
+        switch (op.charAt(0)) {
             case 'E':
                 convertExistsUnaryCTLNode(ctx, op, prop);
                 break;

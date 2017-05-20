@@ -43,7 +43,7 @@ public class EvaluatorEmitter extends CTLBaseListener {
 
     @Override
     public void exitProperty(CTLParser.PropertyContext ctx) {
-        if(ctx.getText().compareTo("true") == 0)
+        if (ctx.getText().compareTo("true") == 0)
             setTrueLabel(ctx);
         else
             setLabel(ctx);
@@ -88,7 +88,7 @@ public class EvaluatorEmitter extends CTLBaseListener {
         setLabel(ctx);
         Integer childLabel = getLabel(ctx.parenExpr());
 
-        if(ctx.CTLOpUnary().getText().charAt(0) == 'A')
+        if (ctx.CTLOpUnary().getText().charAt(0) == 'A')
             stateMachine.af(getLabel(ctx), childLabel);
         else
             stateMachine.ex(getLabel(ctx), childLabel);
