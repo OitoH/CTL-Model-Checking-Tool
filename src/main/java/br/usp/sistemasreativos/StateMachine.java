@@ -75,12 +75,16 @@ class StateMachine{
         return stateList.get(stateId).addProperty(propertyName);
     }
     public boolean addNextState(int stateId,int idNextState){
+		try{
         System.out.println("stateId = "+stateId+" nextState = "+ idNextState);
-        return stateList.get(stateId).addNextState(stateList.get(idNextState));
+        return stateList.get(stateId).addNextState(stateList.get(idNextState));}
+		catch(Exception e){
+		return false;
+		}
     }
     /******************************************************************
      Implementação das operações na máquina de estado
-     */
+    */
 
     public boolean propertyLabel(int idLabel,String property){
         //adiciona label idlabel na propriedade property
@@ -137,13 +141,13 @@ class StateMachine{
         for(i=1;i<stateList.size();i++){
             // q=p --> q^p || !q^!p
             if(
-                    ( stateList.get(i).verifyLabel(label1) && stateList.get(i).verifyLabel(label2) )
-                            ||
-                            ((!stateList.get(i).verifyLabel(label1) ) && (!stateList.get(i).verifyLabel(label2)) )
-                    )
-            {
-                stateList.get(i).addLabel(idLabel);
-            }
+	       ( stateList.get(i).verifyLabel(label1) && stateList.get(i).verifyLabel(label2) )
+	       ||
+	       ((!stateList.get(i).verifyLabel(label1) ) && (!stateList.get(i).verifyLabel(label2)) )
+	       )
+		{
+		    stateList.get(i).addLabel(idLabel);
+		}
         }
         return true;
     }
@@ -163,9 +167,9 @@ class StateMachine{
         boolean modified=false;
         for(i=1;i<stateList.size();i++){
             if(
-                    stateList.get(i).verifyLabel(label1) &&
-                            stateList.get(i).verifyNextStateLabel(idLabel) &&
-                            (!stateList.get(i).verifyLabel(idLabel))){
+	       stateList.get(i).verifyLabel(label1) &&
+	       stateList.get(i).verifyNextStateLabel(idLabel) &&
+	       (!stateList.get(i).verifyLabel(idLabel))){
                 stateList.get(i).addLabel(idLabel);
                 modified = true;//se algum rótulo é adicionado a busca recomeça
             }
@@ -189,8 +193,8 @@ class StateMachine{
         boolean modified=false;
         for(i=1;i<stateList.size();i++){
             if(
-                    stateList.get(i).verifyAllNextStateLabel(idLabel) &&
-                            (!stateList.get(i).verifyLabel(idLabel))){
+	       stateList.get(i).verifyAllNextStateLabel(idLabel) &&
+	       (!stateList.get(i).verifyLabel(idLabel))){
                 stateList.get(i).addLabel(idLabel);
                 modified = true;//se algum rótulo é adicionado, a busca recomeça
             }
@@ -222,34 +226,49 @@ class StateMachine{
 
     public static StateMachine buildKISSFormat(BufferedReader bufferedReader) throws IOException {
         //Parser da entrada (máquina de estado)
-        int totLinhas = Integer.parseInt(bufferedReader.readLine());
-        int idLinha;
+		try{
+	    int totLinhas = Integer.parseInt(bufferedReader.readLine());
+       	int idLinha;
         StateMachine stateMachine = new StateMachine(totLinhas);
         for(idLinha = 1; idLinha <= totLinhas; idLinha++){
 
-            //tratamento das linhas de cada estado
-            String linha;
-            linha = bufferedReader.readLine();
-            String[] words = linha.split(" ");
-            int vectorPointer;
-            //words: vetor de palavras de uma linha
-            //vectorPointer: ponteiro do vetor words
-
-            int propVectorPointer = Integer.parseInt(words[1]) + 2;
-            int maxVectorPointer = Integer.parseInt(words[propVectorPointer]) + propVectorPointer+1;
-            for(vectorPointer=2 ; vectorPointer<propVectorPointer ; vectorPointer++){
-                //adiciona propriedades ao estado idLinha
-                stateMachine.addProperty(idLinha,words[vectorPointer]);
-            }
-            for(vectorPointer=propVectorPointer+1; vectorPointer<maxVectorPointer ; vectorPointer++){
-                //adiciona proximos estados ao estado idLinha
-                stateMachine.addNextState(idLinha,Integer.parseInt(words[vectorPointer]));
-            }
-        }
-
+	    //tratamento das linhas de cada estado
+	    String linha;
+	    linha = bufferedReader.readLine();
+	    String[] words = linha.split(" ");
+	    int vectorPointer;
+	    //words: vetor de palavras de uma linha
+	    //vectorPointer: ponteiro do vetor words
+	
+		if(idLinha!=Integer.parseInt(words[0])){
+		System.out.println("Nome do estado incorreto, esperado "+idLinha +", recebido "+words[0]);
+		return null;
+		}
+	    int propVectorPointer = Integer.parseInt(words[1]) + 2;
+	    int maxVectorPointer = Integer.parseInt(words[propVectorPointer]) + propVectorPointer+1;
+	    for(vectorPointer=2 ; vectorPointer<propVectorPointer ; vectorPointer++){
+		//adiciona propriedades ao estado idLinha
+		stateMachine.addProperty(idLinha,words[vectorPointer]);
+	    }
+	    for(vectorPointer=propVectorPointer+1; vectorPointer<maxVectorPointer ; vectorPointer++){
+		//adiciona proximos estados ao estado idLinha
+		if(!stateMachine.addNextState(idLinha,Integer.parseInt(words[vectorPointer]))){
+System.out.println("Estado <"+Integer.parseInt(words[vectorPointer])+"> inexistente");
+			System.out.println("nao foi possivel adicionar estado <" + Integer.parseInt(words[vectorPointer])+"> ao estado <"+idLinha+">");
+			return null;
+			}
+	    }
+        }	
+	
+		
         return stateMachine;
-    }
-
+		}
+		catch(NumberFormatException ex){
+			System.out.println("Máquina de estado mal formado, espera-se integer nos seguintes valores");
+System.out.println("Qtd de linhas, Qtd de estados, Nome dos estados, Qtd de propriedades");
+		return null;		
+		}
+    	}
     public static void testMainApp(String[] args){
         StateMachine stateMachine;
         String fileName;
@@ -264,52 +283,52 @@ class StateMachine{
 
             stateMachine = StateMachine.buildKISSFormat(bufferedReader);
 
-			/*testes
-			//adiciona rotulos nos estados com propriedades
-			int idLabel=1;
-			stateMachine.propertyLabel(idLabel++,"p");
-			stateMachine.propertyLabel(idLabel++,"q");
-			stateMachine.propertyLabel(idLabel++,"s");
-			stateMachine.propertyLabel(idLabel++,"r");
-			//testa operação
-			stateMachine.eu(idLabel++,0,1);
-			stateMachine.and(idLabel++,1,2);
-			stateMachine.or(idLabel++,1,2);
-			stateMachine.not(idLabel++,1);
-			List<Integer> labelList = new ArrayList<Integer>();
-			labelList = stateMachine.getStateLabel(1);
-			for (int stateLabel:labelList){
-				System.out.println("stados p "+stateLabel);
-			}
-			labelList = stateMachine.getStateLabel(2);
-			for (int stateLabel:labelList){
-				System.out.println("stados q "+stateLabel);
-			}
-			labelList = stateMachine.getStateLabel(3);
-			for (int stateLabel:labelList){
-				System.out.println("stados s "+stateLabel);
-			}
-			labelList = stateMachine.getStateLabel(4);
-			for (int stateLabel:labelList){
-				System.out.println("stados r "+stateLabel);
-			}
-			labelList = stateMachine.getStateLabel(5);
-			for (int stateLabel:labelList){
-				System.out.println("stados eu(p,q) "+stateLabel);
-			}
-			labelList = stateMachine.getStateLabel(6);
-			for (int stateLabel:labelList){
-				System.out.println("stados and(p,q) "+stateLabel);
-			}
-			labelList = stateMachine.getStateLabel(7);
-			for (int stateLabel:labelList){
-				System.out.println("stados or(p,q) "+stateLabel);
-			}
-			labelList = stateMachine.getStateLabel(8);
-			for (int stateLabel:labelList){
-				System.out.println("stados not(p) "+stateLabel);
-			}
-			//*/
+	    /*testes
+	    //adiciona rotulos nos estados com propriedades
+	    int idLabel=1;
+	    stateMachine.propertyLabel(idLabel++,"p");
+	    stateMachine.propertyLabel(idLabel++,"q");
+	    stateMachine.propertyLabel(idLabel++,"s");
+	    stateMachine.propertyLabel(idLabel++,"r");
+	    //testa operação
+	    stateMachine.eu(idLabel++,0,1);
+	    stateMachine.and(idLabel++,1,2);
+	    stateMachine.or(idLabel++,1,2);
+	    stateMachine.not(idLabel++,1);
+	    List<Integer> labelList = new ArrayList<Integer>();
+	    labelList = stateMachine.getStateLabel(1);
+	    for (int stateLabel:labelList){
+	    System.out.println("stados p "+stateLabel);
+	    }
+	    labelList = stateMachine.getStateLabel(2);
+	    for (int stateLabel:labelList){
+	    System.out.println("stados q "+stateLabel);
+	    }
+	    labelList = stateMachine.getStateLabel(3);
+	    for (int stateLabel:labelList){
+	    System.out.println("stados s "+stateLabel);
+	    }
+	    labelList = stateMachine.getStateLabel(4);
+	    for (int stateLabel:labelList){
+	    System.out.println("stados r "+stateLabel);
+	    }
+	    labelList = stateMachine.getStateLabel(5);
+	    for (int stateLabel:labelList){
+	    System.out.println("stados eu(p,q) "+stateLabel);
+	    }
+	    labelList = stateMachine.getStateLabel(6);
+	    for (int stateLabel:labelList){
+	    System.out.println("stados and(p,q) "+stateLabel);
+	    }
+	    labelList = stateMachine.getStateLabel(7);
+	    for (int stateLabel:labelList){
+	    System.out.println("stados or(p,q) "+stateLabel);
+	    }
+	    labelList = stateMachine.getStateLabel(8);
+	    for (int stateLabel:labelList){
+	    System.out.println("stados not(p) "+stateLabel);
+	    }
+	    //*/
 
         }
         catch(NumberFormatException ex){

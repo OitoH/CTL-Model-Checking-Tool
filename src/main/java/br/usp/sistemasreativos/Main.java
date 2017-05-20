@@ -22,6 +22,9 @@ public class Main {
         // Construir máquina
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         StateMachine stateMachine = StateMachine.buildKISSFormat(bufferedReader);
+	if(stateMachine==null){
+		System.exit(0);
+		}
 
         // Ler expressão CTL
         String CTLExpression = bufferedReader.readLine();
