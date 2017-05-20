@@ -24,8 +24,8 @@ public class Main {
         StateMachine stateMachine = StateMachine.buildKISSFormat(bufferedReader);
 
         // Ler expressão CTL
-        Scanner sc = new Scanner(System.in);
-        String CTLExpression = sc.nextLine();
+        String CTLExpression = bufferedReader.readLine();
+        bufferedReader.close();
 
         // Converter a expressão para o formato com número mínimo de operadores
         ParseTreeWalker walker = new ParseTreeWalker();
