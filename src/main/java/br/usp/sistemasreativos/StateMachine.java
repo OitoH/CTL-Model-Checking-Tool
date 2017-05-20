@@ -87,7 +87,10 @@ class StateMachine {
     }
 
     public boolean addNextState(int stateId, int idNextState) {
-        try {
+	if(idNextState==0){
+		return false;
+	}
+        try {	
             System.out.println("stateId = " + stateId + " nextState = " + idNextState);
             return stateList.get(stateId).addNextState(stateList.get(idNextState));
         } catch (Exception e) {
