@@ -2,8 +2,8 @@ package br.usp.sistemasreativos;
 
 import br.usp.sistemasreativos.grammar.CTLLexer;
 import br.usp.sistemasreativos.grammar.CTLParser;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
@@ -13,6 +13,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
+
+class ThrowingErrorListener extends BaseErrorListener {
+
+    public static final ThrowingErrorListener INSTANCE = new ThrowingErrorListener();
+
+    @Override
+    public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e)
+            throws ParseCancellationException {
+        throw new ParseCancellationException("line " + line + ":" + charPositionInLine + " " + msg);
+    }
+}
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -49,8 +60,17 @@ public class Main {
         CTLParser parser = new CTLParser(
                 new CommonTokenStream(new CTLLexer(new ANTLRInputStream(CTLExpression)))
         );
+        parser.removeErrorListeners();
+        parser.addErrorListener(ThrowingErrorListener.INSTANCE);
         parser.setBuildParseTree(true);
-        ParseTree expressionTree = parser.expr();
+        ParseTree expressionTree = null;
+        try {
+            expressionTree = parser.expr();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return;
+        }
+
         NormalizedCTLEmitter converter = new NormalizedCTLEmitter();
         walker.walk(converter, expressionTree);
 
