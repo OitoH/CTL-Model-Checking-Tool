@@ -123,9 +123,8 @@ public class NormalizedCTLEmitter extends CTLBaseListener {
         if (op.compareTo("AU") == 0) {
             q = wrap(q);
             String notq = '!' + q;
-
-            buf.append("!(EG(");
-            buf.append(notq);
+            buf.append("!(!AF(");
+            buf.append(q);
             buf.append(")|EU(");
             buf.append(notq);
             buf.append(",");
